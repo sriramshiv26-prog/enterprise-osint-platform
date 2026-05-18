@@ -10,7 +10,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.osint_platform.config import get_config
 from src.osint_platform.tools.tool_manager import get_tool_manager
+from src.osint_platform.api_integrations.manager import get_api_manager
 from src.osint_platform.api.routes import tools as tools_routes
+from src.osint_platform.api.routes import apis as apis_routes
 
 # Configure logging
 logging.basicConfig(
@@ -56,6 +58,25 @@ async def lifespan(app: FastAPI):
         logger.error(f"Failed to start tool executors: {e}")
         raise
 
+    # Initialize API Manager
+    try:
+        logger.info("Initializing OSINT API Manager...")
+        api_manager = get_api_manager()
+        api_keys = {
+            "shodan": config.get("apis", {}).get("shodan_key", ""),
+            "virustotal": config.get("apis", {}).get("virustotal_key", ""),
+            "securitytrails": config.get("apis", {}).get("securitytrails_key", ""),
+            "haveibeenpwned": config.get("apis", {}).get("haveibeenpwned_key", ""),
+            "abuseipdb": config.get("apis", {}).get("abuseipdb_key", ""),
+            "urlscan": config.get("apis", {}).get("urlscan_key", ""),
+            "whois": config.get("apis", {}).get("whois_key", ""),
+            "twitter": config.get("apis", {}).get("twitter_key", ""),
+        }
+        await api_manager.initialize(api_keys)
+        logger.info("API Manager initialized")
+    except Exception as e:
+        logger.warning(f"API Manager initialization warning: {e}")
+
     yield
 
     # Shutdown
@@ -66,6 +87,12 @@ async def lifespan(app: FastAPI):
         tool_manager = get_tool_manager()
         await tool_manager.stop()
         logger.info("Tool executors stopped")
+
+        # Close API Manager connections
+        logger.info("Closing API Manager...")
+        api_manager = get_api_manager()
+        await api_manager.close()
+        logger.info("API Manager closed")
 
         # TODO: Close database connections
         # TODO: Close Redis connection
@@ -120,6 +147,7 @@ def create_app() -> FastAPI:
 
     # API Routes
     app.include_router(tools_routes.router)
+    app.include_router(apis_routes.router)
     # @app.include_router(auth.router, prefix="/api/v1/auth", tags=["Auth"])
     # @app.include_router(investigations.router, prefix="/api/v1/investigations", tags=["Investigations"])
 
