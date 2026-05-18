@@ -9,6 +9,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.osint_platform.config import get_config
+from src.osint_platform.tools.tool_manager import get_tool_manager
+from src.osint_platform.api.routes import tools as tools_routes
 
 # Configure logging
 logging.basicConfig(
@@ -44,11 +46,27 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"Redis connection failed (non-critical): {e}")
 
+    # Initialize OSINT tool manager
+    try:
+        logger.info("Starting OSINT tool executors...")
+        tool_manager = get_tool_manager()
+        await tool_manager.start()
+        logger.info("Tool executors started")
+    except Exception as e:
+        logger.error(f"Failed to start tool executors: {e}")
+        raise
+
     yield
 
     # Shutdown
     logger.info("Shutting down Enterprise OSINT Platform")
     try:
+        # Stop tool executors
+        logger.info("Stopping OSINT tool executors...")
+        tool_manager = get_tool_manager()
+        await tool_manager.stop()
+        logger.info("Tool executors stopped")
+
         # TODO: Close database connections
         # TODO: Close Redis connection
         logger.info("All connections closed")
@@ -100,7 +118,8 @@ def create_app() -> FastAPI:
             "status": "running",
         }
 
-    # API Routes - will be added in subsequent steps
+    # API Routes
+    app.include_router(tools_routes.router)
     # @app.include_router(auth.router, prefix="/api/v1/auth", tags=["Auth"])
     # @app.include_router(investigations.router, prefix="/api/v1/investigations", tags=["Investigations"])
 
