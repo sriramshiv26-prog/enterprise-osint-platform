@@ -13,6 +13,7 @@ from src.osint_platform.tools.tool_manager import get_tool_manager
 from src.osint_platform.api_integrations.manager import get_api_manager
 from src.osint_platform.api.routes import tools as tools_routes
 from src.osint_platform.api.routes import apis as apis_routes
+from src.osint_platform.api.routes import questionnaires as questionnaires_routes
 
 # Configure logging
 logging.basicConfig(
@@ -148,6 +149,7 @@ def create_app() -> FastAPI:
     # API Routes
     app.include_router(tools_routes.router)
     app.include_router(apis_routes.router)
+    app.include_router(questionnaires_routes.router)
     # @app.include_router(auth.router, prefix="/api/v1/auth", tags=["Auth"])
     # @app.include_router(investigations.router, prefix="/api/v1/investigations", tags=["Investigations"])
 
