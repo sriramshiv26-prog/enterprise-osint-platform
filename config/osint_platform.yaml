@@ -1,0 +1,80 @@
+app:
+  name: "Enterprise OSINT Platform"
+  version: "0.1.0"
+  environment: "development"
+  debug: true
+
+database:
+  url: ${DATABASE_URL:-postgresql://postgres:dev_password@localhost:5432/osint_platform}
+  pool_size: 20
+  max_overflow: 40
+  echo: false
+  timeout: 30
+
+redis:
+  url: ${REDIS_URL:-redis://localhost:6379/0}
+  cache_ttl: 3600
+
+elasticsearch:
+  hosts: ["localhost:9200"]
+  index_prefix: "osint_"
+  timeout: 30
+
+neo4j:
+  uri: ${NEO4J_URI:-bolt://localhost:7687}
+  user: neo4j
+  password: ${NEO4J_PASSWORD:-dev_password}
+
+jwt:
+  secret_key: ${JWT_SECRET_KEY:-dev_secret_key_change_in_production}
+  algorithm: "HS256"
+  expiry_hours: 24
+  refresh_expiry_days: 7
+
+osint:
+  default_depth: 2
+  timeout: 60
+  max_concurrent_tasks: 10
+  cache_enabled: true
+
+logging:
+  level: "INFO"
+  format: "json"
+  file: "logs/osint_platform.log"
+
+api:
+  title: "Enterprise OSINT Platform API"
+  description: "Autonomous intelligence gathering platform"
+  version: "0.1.0"
+  docs_url: "/docs"
+  openapi_url: "/openapi.json"
+
+cors:
+  allowed_origins: ["*"]
+  allowed_methods: ["GET", "POST", "PUT", "DELETE"]
+  allowed_headers: ["*"]
+
+security:
+  password_min_length: 12
+  password_require_special_chars: true
+  rate_limit_per_minute: 60
+
+celery:
+  broker: ${CELERY_BROKER_URL:-redis://localhost:6379/1}
+  backend: ${CELERY_RESULT_BACKEND:-redis://localhost:6379/2}
+  timezone: "UTC"
+
+# Claude API Configuration (for complex decisions)
+claude:
+  api_key: ${ANTHROPIC_API_KEY}
+  model: "claude-3-5-sonnet-20241022"
+  timeout: 30
+  max_tokens: 4096
+
+# Ollama Configuration (local LLM fallback)
+ollama:
+  enabled: true
+  base_url: ${OLLAMA_BASE_URL:-http://localhost:11434}
+  model: "qwen2.5-coder:1.5b"
+  timeout: 60
+  fallback_to_claude: true
