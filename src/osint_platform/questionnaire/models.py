@@ -74,7 +74,7 @@ class QuestionnaireResponse(BaseModel):
     """User's complete response to a questionnaire."""
     id: str = Field(default_factory=lambda: str(__import__("uuid").uuid4()))
     questionnaire_id: str
-    answers: List[Answer]
+    answers: List[Answer] = Field(default_factory=list)
     completed: bool = False
     completion_time_seconds: Optional[float] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)

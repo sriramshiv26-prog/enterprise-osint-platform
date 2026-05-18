@@ -52,15 +52,21 @@ class QuestionnaireStartResponse(BaseModel):
     first_question: Optional[QuestionResponse] = None
 
 
-@router.get("/templates")
-async def list_templates() -> Dict[str, List[str]]:
+class TemplateListResponse(BaseModel):
+    """Response with list of templates."""
+    templates: List[str]
+    count: int
+
+
+@router.get("/templates", response_model=TemplateListResponse)
+async def list_templates() -> TemplateListResponse:
     """List available questionnaire templates."""
     from src.osint_platform.questionnaire.library import QUESTIONNAIRE_LIBRARY
 
-    return {
-        "templates": list(QUESTIONNAIRE_LIBRARY.keys()),
-        "count": len(QUESTIONNAIRE_LIBRARY),
-    }
+    return TemplateListResponse(
+        templates=list(QUESTIONNAIRE_LIBRARY.keys()),
+        count=len(QUESTIONNAIRE_LIBRARY),
+    )
 
 
 @router.get("/templates/{template_id}")
