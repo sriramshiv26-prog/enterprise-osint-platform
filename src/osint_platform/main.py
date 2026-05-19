@@ -2,8 +2,9 @@
 Enterprise OSINT Platform - Main FastAPI Application
 """
 import logging
+import asyncio
 from contextlib import asynccontextmanager
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,11 +12,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.osint_platform.config import get_config
 from src.osint_platform.tools.tool_manager import get_tool_manager
 from src.osint_platform.api_integrations.manager import get_api_manager
+from src.osint_platform.database.session import init_db, close_db, SessionLocal
+from src.osint_platform.database.neo4j_client import get_neo4j_client
+from src.osint_platform.database.sync_executor import SyncManager
 from src.osint_platform.api.routes import tools as tools_routes
 from src.osint_platform.api.routes import apis as apis_routes
 from src.osint_platform.api.routes import questionnaires as questionnaires_routes
 from src.osint_platform.api.routes import graph as graph_routes
 from src.osint_platform.api.routes import threat_assessment as threat_assessment_routes
+from src.osint_platform.api.routes import database as database_routes
 
 # Configure logging
 logging.basicConfig(
@@ -24,24 +29,49 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Global state
+_sync_manager: Optional[SyncManager] = None
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manage application lifespan - startup and shutdown events."""
+    global _sync_manager
+
     # Startup
     logger.info("Starting Enterprise OSINT Platform")
     config = get_config()
     logger.info(f"Environment: {config.get('environment', 'development')}")
     logger.info(f"Debug Mode: {config.get('debug', False)}")
 
-    # Initialize database connection
+    # Initialize database
     try:
-        logger.info("Initializing database connection...")
-        # TODO: Initialize database connection
-        logger.info("Database connection initialized")
+        logger.info("Initializing PostgreSQL database...")
+        await init_db()
+        logger.info("PostgreSQL database initialized")
     except Exception as e:
         logger.error(f"Failed to initialize database: {e}")
         raise
+
+    # Initialize Neo4j connection
+    try:
+        logger.info("Initializing Neo4j connection...")
+        neo4j_client = await get_neo4j_client()
+        await neo4j_client.initialize_schema()
+        logger.info("Neo4j connection and schema initialized")
+    except Exception as e:
+        logger.warning(f"Neo4j initialization warning (optional): {e}")
+
+    # Initialize sync manager
+    try:
+        logger.info("Starting database sync executor...")
+        db_session = SessionLocal()
+        neo4j_client = await get_neo4j_client()
+        _sync_manager = SyncManager(db_session, neo4j_client)
+        await _sync_manager.start()
+        logger.info("Sync executor started (PostgreSQL → Neo4j)")
+    except Exception as e:
+        logger.warning(f"Sync manager initialization warning (optional): {e}")
 
     # Initialize Redis connection
     try:
@@ -85,6 +115,12 @@ async def lifespan(app: FastAPI):
     # Shutdown
     logger.info("Shutting down Enterprise OSINT Platform")
     try:
+        # Stop sync manager
+        if _sync_manager:
+            logger.info("Stopping database sync executor...")
+            await _sync_manager.stop()
+            logger.info("Sync executor stopped")
+
         # Stop tool executors
         logger.info("Stopping OSINT tool executors...")
         tool_manager = get_tool_manager()
@@ -97,8 +133,20 @@ async def lifespan(app: FastAPI):
         await api_manager.close()
         logger.info("API Manager closed")
 
-        # TODO: Close database connections
-        # TODO: Close Redis connection
+        # Close Neo4j connection
+        try:
+            logger.info("Closing Neo4j connection...")
+            neo4j_client = await get_neo4j_client()
+            await neo4j_client.close()
+            logger.info("Neo4j connection closed")
+        except Exception as e:
+            logger.warning(f"Neo4j close warning: {e}")
+
+        # Close database connections
+        logger.info("Closing database connections...")
+        await close_db()
+        logger.info("Database connections closed")
+
         logger.info("All connections closed")
     except Exception as e:
         logger.error(f"Error during shutdown: {e}")
@@ -154,6 +202,7 @@ def create_app() -> FastAPI:
     app.include_router(questionnaires_routes.router)
     app.include_router(graph_routes.router)
     app.include_router(threat_assessment_routes.router)
+    app.include_router(database_routes.router)
     # @app.include_router(auth.router, prefix="/api/v1/auth", tags=["Auth"])
     # @app.include_router(investigations.router, prefix="/api/v1/investigations", tags=["Investigations"])
 
