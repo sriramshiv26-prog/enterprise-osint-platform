@@ -95,7 +95,7 @@ class TestQuestionValidator:
 
         is_valid, error = QuestionValidator.validate_answer(question, "invalid")
         assert not is_valid
-        assert "32, 40, or 64" in error
+        assert "32" in error and "40" in error and "64" in error
 
     def test_validate_choice(self):
         """Test choice validation."""

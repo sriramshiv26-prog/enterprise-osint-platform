@@ -67,7 +67,6 @@ class BaseAdapter(ABC):
         """
         pass
 
-    @abstractmethod
     async def search(self, query: str, **kwargs) -> StandardResult:
         """
         Execute search query on API.
@@ -78,8 +77,21 @@ class BaseAdapter(ABC):
 
         Returns:
             StandardResult with findings
+
+        Note:
+            Subclasses should override this method or provide more specific
+            search methods (search_ip, search_domain, etc.)
         """
-        pass
+        # Default implementation returns empty result
+        return StandardResult(
+            api_name=self.api_name,
+            query=query,
+            results=[],
+            success=False,
+            error="API does not implement search",
+            execution_time=0,
+            timestamp=datetime.utcnow().isoformat(),
+        )
 
     async def http_get(
         self,

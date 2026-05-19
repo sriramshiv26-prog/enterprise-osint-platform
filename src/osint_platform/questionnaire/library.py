@@ -21,6 +21,7 @@ def create_threat_assessment_questionnaire() -> Questionnaire:
                 text="What type of indicator are you investigating?",
                 type=QuestionType.CHOICE,
                 choices=["IP Address", "Domain", "Email", "File Hash", "URL"],
+                next_question="indicator_value",
                 help_text="Select the type of indicator you want to investigate",
             ),
             Question(

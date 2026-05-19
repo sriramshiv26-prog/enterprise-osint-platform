@@ -9,11 +9,15 @@ class MockTool(RateLimitedToolExecutor):
     """Mock tool executor for testing."""
 
     def __init__(self, **kwargs):
+        # Extract override parameters, use defaults if not provided
+        max_concurrent = kwargs.pop("max_concurrent", 2)
+        queue_size = kwargs.pop("queue_size", 50)
+
         super().__init__(
             tool_name="mock",
             requests_per_second=10.0,
-            max_concurrent=2,
-            queue_size=50,
+            max_concurrent=max_concurrent,
+            queue_size=queue_size,
             timeout_seconds=5,
             **kwargs,
         )

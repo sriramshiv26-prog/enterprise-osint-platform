@@ -167,6 +167,45 @@ class VirusTotalAPI(BearerTokenAdapter):
                 execution_time=execution_time,
             )
 
+    async def search(self, query: str, **kwargs) -> StandardResult:
+        """
+        Generic search that delegates to specific search methods.
+
+        Args:
+            query: IP, domain, hash, or URL to search
+            **kwargs: Additional search options
+
+        Returns:
+            StandardResult with threat intelligence data
+        """
+        # Detect query type and delegate to appropriate search method
+        if self._is_ip(query):
+            return await self.search_ip(query, **kwargs)
+        elif self._is_domain(query):
+            return await self.search_domain(query, **kwargs)
+        elif self._is_hash(query):
+            return await self.search_hash(query, **kwargs)
+        else:
+            # Default to domain search for unknown types
+            return await self.search_domain(query, **kwargs)
+
+    def _is_ip(self, query: str) -> bool:
+        """Check if query is an IP address."""
+        import ipaddress
+        try:
+            ipaddress.ip_address(query)
+            return True
+        except ValueError:
+            return False
+
+    def _is_domain(self, query: str) -> bool:
+        """Check if query is a domain."""
+        return "." in query and not self._is_ip(query) and not self._is_hash(query)
+
+    def _is_hash(self, query: str) -> bool:
+        """Check if query is a file hash."""
+        return len(query) in [32, 40, 64] and all(c in "0123456789abcdefABCDEF" for c in query)
+
     def _parse_ip_response(self, data: Dict[str, Any]) -> list:
         """Parse IP search response."""
         attributes = data.get("data", {}).get("attributes", {})

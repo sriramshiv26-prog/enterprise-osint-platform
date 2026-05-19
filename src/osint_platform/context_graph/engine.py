@@ -170,13 +170,12 @@ class ContextGraph:
 
         # Pattern 1: Shared Infrastructure (multiple domains on same IP)
         ip_to_domains = defaultdict(list)
-        for entity in self.entities.values():
-            if entity.type == EntityType.DOMAIN:
-                for rel in self.relationships.values():
-                    if rel.target_id == entity.id and rel.type == RelationType.RESOLVES_TO:
-                        ip = self.entities.get(rel.source_id)
-                        if ip and ip.type == EntityType.IP:
-                            ip_to_domains[ip.id].append(entity.id)
+        for rel in self.relationships.values():
+            if rel.type == RelationType.RESOLVES_TO:
+                domain = self.entities.get(rel.source_id)
+                ip = self.entities.get(rel.target_id)
+                if domain and domain.type == EntityType.DOMAIN and ip and ip.type == EntityType.IP:
+                    ip_to_domains[ip.id].append(domain.id)
 
         for ip_id, domain_ids in ip_to_domains.items():
             if len(domain_ids) > 2:  # Threshold
