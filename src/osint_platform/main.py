@@ -21,6 +21,7 @@ from src.osint_platform.api.routes import questionnaires as questionnaires_route
 from src.osint_platform.api.routes import graph as graph_routes
 from src.osint_platform.api.routes import threat_assessment as threat_assessment_routes
 from src.osint_platform.api.routes import database as database_routes
+from src.osint_platform.api.routes import agent as agent_routes
 
 # Configure logging
 logging.basicConfig(
@@ -203,6 +204,7 @@ def create_app() -> FastAPI:
     app.include_router(graph_routes.router)
     app.include_router(threat_assessment_routes.router)
     app.include_router(database_routes.router)
+    app.include_router(agent_routes.router)
     # @app.include_router(auth.router, prefix="/api/v1/auth", tags=["Auth"])
     # @app.include_router(investigations.router, prefix="/api/v1/investigations", tags=["Investigations"])
 

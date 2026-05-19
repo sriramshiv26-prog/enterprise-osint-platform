@@ -75,6 +75,6 @@ claude:
 ollama:
   enabled: true
   base_url: ${OLLAMA_BASE_URL:-http://localhost:11434}
-  model: "qwen2.5-coder:1.5b"
+  model: "qwen2.5-coder:32b"
   timeout: 60
   fallback_to_claude: true
