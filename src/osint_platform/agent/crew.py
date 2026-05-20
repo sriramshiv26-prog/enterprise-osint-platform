@@ -159,8 +159,17 @@ def create_investigation_tasks(
                 "   - For domains: Use sublist3r_subdomain_enumeration and amass_asset_discovery\n"
                 "   - For emails: Use holehe_email_check\n"
                 "   - For phone numbers: Use phoneinfoga_phone_scan\n"
+                "   - For image URLs: Use photo_osint_search (EXIF, GPS, face detection, reverse search)\n"
                 "4. Document ALL findings including sources and confidence levels.\n"
-                "5. Identify any related entities discovered during the investigation.\n\n"
+                "5. For web footprinting, use google_dork_search to find:\n"
+                "   - Exposed admin panels, config files, logs, backups\n"
+                "   - Database dumps, password files, error messages\n"
+                "   - Directory listings, login pages, file upload interfaces\n"
+                "   - Exposed documents (PDFs, spreadsheets, CSVs)\n"
+                "   - Subdomains via site:* target\n"
+                "   - Email addresses and social media mentions\n"
+                "   Use dork queries scoped to the target domain via site:{target}.\n"
+                "6. Identify any related entities discovered during the investigation.\n\n"
                 "Return a comprehensive evidence package with all findings organized by source."
             ),
             agent=investigator,

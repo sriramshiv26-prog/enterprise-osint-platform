@@ -12,6 +12,8 @@ from src.osint_platform.tools.executors import (
     AmassExecutor,
     HoleheExecutor,
     PhoneInfogaExecutor,
+    DorkExecutor,
+    PhotoExecutor,
 )
 
 logger = logging.getLogger(__name__)
@@ -44,6 +46,8 @@ class ToolManager:
         self.executors["amass"] = AmassExecutor()
         self.executors["holehe"] = HoleheExecutor()
         self.executors["phoneinfoga"] = PhoneInfogaExecutor()
+        self.executors["google_dork"] = DorkExecutor(max_results=30)
+        self.executors["photo_osint"] = PhotoExecutor()
 
         logger.info(f"Created {len(self.executors)} tool executors")
 

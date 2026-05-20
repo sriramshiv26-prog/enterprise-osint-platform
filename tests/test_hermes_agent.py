@@ -20,7 +20,7 @@ class TestAgentTools:
 
         tools = get_agent_tools()
         assert isinstance(tools, list)
-        assert len(tools) == 6  # 5 executors + 1 API query tool
+        assert len(tools) == 8  # 6 executors + 1 API query + 1 dork tool
 
     def test_all_tools_have_names(self):
         """Test all tools have descriptive names."""
@@ -42,6 +42,8 @@ class TestAgentTools:
             "holehe_email_check",
             "phoneinfoga_phone_scan",
             "threat_intelligence_query",
+            "google_dork_search",
+            "photo_osint_search",
         }
         assert names == expected, f"Tools mismatch. Got {names}"
 
@@ -49,7 +51,7 @@ class TestAgentTools:
         """Test AVAILABLE_TOOLS dictionary is complete."""
         from src.osint_platform.agent.tools import AVAILABLE_TOOLS
 
-        assert len(AVAILABLE_TOOLS) == 6
+        assert len(AVAILABLE_TOOLS) == 8
         for name, desc in AVAILABLE_TOOLS.items():
             assert isinstance(name, str) and len(name) > 0
             assert isinstance(desc, str) and len(desc) > 0
@@ -745,8 +747,8 @@ class TestAgentAPIRoutes:
         response = client.get("/api/v1/agent/tools")
         assert response.status_code == 200
         data = response.json()
-        assert data["tool_count"] == 6
-        assert len(data["tools"]) == 6
+        assert data["tool_count"] == 8
+        assert len(data["tools"]) == 8
 
     @pytest.mark.asyncio
     async def test_cancel_endpoint_not_found(self):

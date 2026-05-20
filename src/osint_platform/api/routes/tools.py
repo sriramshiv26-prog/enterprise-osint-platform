@@ -181,6 +181,56 @@ async def execute_phoneinfoga(request: ToolExecutionRequest) -> ToolExecutionRes
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/google_dork/search", response_model=ToolExecutionResponse)
+async def execute_google_dork(request: ToolExecutionRequest) -> ToolExecutionResponse:
+    """
+    Advanced Google search for exposed configs, databases, and files (Google Dork).
+
+    Rate limit: 1 request/second
+    """
+    try:
+        manager = get_tool_manager()
+        request_id = await manager.execute_tool(
+            "google_dork",
+            request.query,
+        )
+
+        return ToolExecutionResponse(
+            request_id=request_id,
+            tool_name="google_dork",
+            query=request.query,
+            status="queued",
+        )
+    except Exception as e:
+        logger.error(f"Google Dork execution error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/photo_osint/search", response_model=ToolExecutionResponse)
+async def execute_photo_osint(request: ToolExecutionRequest) -> ToolExecutionResponse:
+    """
+    Photo OSINT analysis (EXIF, GPS, face detection, reverse search).
+
+    Rate limit: 2 requests/second
+    """
+    try:
+        manager = get_tool_manager()
+        request_id = await manager.execute_tool(
+            "photo_osint",
+            request.query,
+        )
+
+        return ToolExecutionResponse(
+            request_id=request_id,
+            tool_name="photo_osint",
+            query=request.query,
+            status="queued",
+        )
+    except Exception as e:
+        logger.error(f"Photo OSINT execution error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/status/{tool_name}/{request_id}", response_model=Optional[ToolStatusResponse])
 async def get_tool_status(
     tool_name: str,

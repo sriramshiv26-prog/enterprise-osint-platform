@@ -7,7 +7,7 @@ from typing import Generator
 # Get database URL from environment or use default
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://osint_user:osint_password@localhost:5432/osint_platform"
+    "postgresql://postgres:dev_password@localhost:5432/osint_platform"
 )
 
 # Create engine

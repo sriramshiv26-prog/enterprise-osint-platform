@@ -66,6 +66,12 @@ langchain-anthropic>=1.4.0
 ipython==8.18.1
 jupyter==1.0.0
 
+# Google Dork Engine
+googlesearch-python>=1.3.0
+
+# Photo OSINT Engine (EXIF extraction, image analysis)
+Pillow>=10.2.0
+
 # CLI Tools
 click==8.1.7
 typer==0.9.0

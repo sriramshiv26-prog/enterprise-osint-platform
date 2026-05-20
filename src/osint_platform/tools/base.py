@@ -4,7 +4,7 @@ Base class for OSINT tools - defines interface and common functionality.
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ class ToolResult:
 
     def __post_init__(self):
         if self.timestamp is None:
-            self.timestamp = datetime.utcnow()
+            self.timestamp = datetime.now(timezone.utc)
 
 
 class BaseTool(ABC):
@@ -81,7 +81,7 @@ class BaseTool(ABC):
 
     def validate_query(self, query: str) -> bool:
         """Validate query format. Override in subclasses for specific validation."""
-        return query and len(query.strip()) > 0
+        return bool(query and len(query.strip()) > 0)
 
 
 class RateLimitTracker:
@@ -100,7 +100,7 @@ class RateLimitTracker:
         self.limits[tool_name] = {
             "remaining": remaining,
             "reset_time": reset_time,
-            "last_updated": datetime.utcnow(),
+            "last_updated": datetime.now(timezone.utc),
         }
 
     def get_limit(self, tool_name: str) -> Optional[Dict[str, Any]]:
@@ -117,7 +117,7 @@ class RateLimitTracker:
         reset_time = limit.get("reset_time")
 
         if remaining == 0 and reset_time:
-            if datetime.utcnow() < reset_time:
+            if datetime.now(timezone.utc) < reset_time:
                 return True
 
         return False

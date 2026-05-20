@@ -138,3 +138,9 @@ logs/
 .env.local
 config/.env.local
 config/.env
+
+# Grafana internal data (D: drive mount)
+config/grafana/provisioning/dashboards/*.json
+!config/grafana/provisioning/dashboards/osint_overview.json
+!config/grafana/provisioning/dashboards/entity_intelligence.json
+!config/grafana/provisioning/dashboards/alert_center.json

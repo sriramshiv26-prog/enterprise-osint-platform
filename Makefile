@@ -79,6 +79,12 @@ migrate-create:
 migrate-downgrade:
 	alembic downgrade -1
 
+seed:
+	python scripts/seed_data.py
+
+seed-clear:
+	python scripts/seed_data.py --clear
+
 clean:
 	find . -type d -name __pycache__ -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
